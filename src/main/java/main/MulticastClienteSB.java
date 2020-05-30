@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
 public class MulticastClienteSB extends javax.swing.JFrame {
     public static final String MCAST_ADDR  = "230.0.0.1"; //dir clase D valida, grupo al que nos vamos a unir
     public static final int MCAST_PORT = 4000;//puerto multicast
-    public static final int DGRAM_BUF_LEN=8000; //tamaño del buffer
+    public static final int DGRAM_BUF_LEN=40000; //tamaño del buffer
     public static String nickname = "";
     public static MulticastSocket s_1;
     public static ArrayList <String> usuariosConectados = new ArrayList<>();
@@ -33,6 +33,7 @@ public class MulticastClienteSB extends javax.swing.JFrame {
             nickname = JOptionPane.showInputDialog("Ingrese su nickname");
             s_1 = new MulticastSocket(MCAST_PORT);
             s_1.setReuseAddress(true);
+            s_1.setTimeToLive(255);
             String conexion = "<inicio>"+nickname;
             byte[] b_1 = conexion.getBytes();
             DatagramPacket p = new DatagramPacket(b_1,b_1.length,group,MCAST_PORT);
@@ -200,20 +201,21 @@ public class MulticastClienteSB extends javax.swing.JFrame {
         try {
             if (datosNuevos.equals("SALIR")){
                 String dato = "<fin>"+nickname;
-                    byte []b_1 = dato.getBytes();
-                    DatagramPacket p = new DatagramPacket(b_1,b_1.length,group,MCAST_PORT);
+                    byte []b_2 = dato.getBytes();
+                    DatagramPacket p = new DatagramPacket(b_2,b_2.length,group,MCAST_PORT);
                     s_1.send(p);
             }else{
                 if (type.equals("Privado")){
                     String persona = (String)comboPrivado.getSelectedItem();
                     String dato = "<privado><"+nickname+"><"+persona+">"+datosNuevos;
-                    byte []b_1 = dato.getBytes();
-                    DatagramPacket p = new DatagramPacket(b_1,b_1.length,group,MCAST_PORT);
+                    System.out.println(dato);
+                    byte []b_2 = dato.getBytes();
+                    DatagramPacket p = new DatagramPacket(b_2,b_2.length,group,MCAST_PORT);
                     s_1.send(p);
                 }else{
                     String dato = "<msj><"+nickname+">"+datosNuevos;
-                    byte []b_1 = dato.getBytes();
-                    DatagramPacket p = new DatagramPacket(b_1,b_1.length,group,MCAST_PORT);
+                    byte []b_2 = dato.getBytes();
+                    DatagramPacket p = new DatagramPacket(b_2,b_2.length,group,MCAST_PORT);
                     s_1.send(p);
                 }
             }
@@ -261,9 +263,7 @@ public class MulticastClienteSB extends javax.swing.JFrame {
         });
                             
     try {          
-        //Conectamos al cancanal
-        NetworkInterface ni = NetworkInterface.getByName("wlan3");
-        InetSocketAddress dir = new InetSocketAddress(MCAST_PORT);
+        
 	try {
             group = InetAddress.getByName(MCAST_ADDR);
         } catch (Exception e) {
@@ -281,9 +281,9 @@ public class MulticastClienteSB extends javax.swing.JFrame {
                 String eco = "";
                 eco = new String (recv.getData());
                 eco = eco.replace(":o", "<img src=\"https://images.emojiterra.com/google/android-10/share/1f618.jpg\" width=40 height=40/>");
-                eco = eco.replace(";)", "<img src=\"file:src\\Imagenes\\imagen_guino.jpg\" width=30 height=30/>");
-                eco = eco.replace(":S", "<img src=\"file:src\\Imagenes\\imagen_gesto.jpg\" width=30 height=30/>");
-                eco = eco.replace("_Perro_", "<img src=\"file:src\\Imagenes\\perro.gif\" width=100 height=100/>");
+                eco = eco.replace(";)", "<img src=\"https://images.emojiterra.com/google/android-10/share/1f60a.jpg\" width=30 height=30/>");
+                eco = eco.replace(":S", "<img src=\"https://images.emojiterra.com/google/android-10/share/1f974.jpg\" width=30 height=30/>");
+                eco = eco.replace("_Perro_", "<img src=\"https://ih1.redbubble.net/image.465654661.2703/flat,750x,075,f-pad,750x1000,f8f8f8.u5.jpg\" width=100 height=100/>");
                 eco = eco.replace("_Homero_", "<img src=\"http://tusimagenesde.com/wp-content/uploads/2015/01/gifs-animados-5.gif\"/>");
                 if (eco.contains("<inicio>")&&!eco.contains("<inicio>"+nickname)){
                     String usuario = eco.replace("<inicio>", "");
@@ -331,6 +331,9 @@ public class MulticastClienteSB extends javax.swing.JFrame {
                             System.out.println(eco);
                             int first = eco.indexOf("<");
                             int second = eco.indexOf(">")+1;
+                            if (second  == 0){
+                                second = eco.indexOf(">");
+                            } 
                             String name = eco.substring(first, second);
                             System.out.println(eco);
                             eco = eco.replace(name, "");
